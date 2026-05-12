@@ -21,7 +21,7 @@ File format: zip containing .txt files
 Name: Annual National Land Cover Database
 Source: USGS (DOI: 10.5066/P94UXNTS)
 Coverage: Contiguous 48 states, 1985-2024
-Main Variables: Land Cover Product (
+Main Variables: Land Cover Product
 File format: tiff image
 
 Name: Heavy metal
@@ -36,14 +36,17 @@ Preliminary Method Plan:
  - identify closest urban areas and get distances
  - compare metal concentration with ANOVA
 
-Question 2: How do toxic metal(loid) concentration from fertilizer (As, Cu, Zn, Ni) in water vary across different counties? How does this change when accounting for county income? How does this change with high flow events?
+Question 2: How do toxic metal(loid) concentration from fertilizer (As, Cu, Zn, Ni) in water vary across different counties in the midwest? How does this change when accounting for county income? How does this change with high flow events?
 
-  Some metals are common in fertilizers (the metals specified come from article (DOI: 10.1038/s41598-024-79681-9)), which can enter waterways from runoff and 
+  Some metals are common in fertilizers (the metals specified come from article (DOI: 10.1038/s41598-024-79681-9)), which can enter waterways from runoff and potentially enter drinking water. Understanding how the concentration varies with time and precipitation can indicate when water needs significant treatment or when people should primarily use bottled water. Additionally, seeing if this changes with median coutny income could help indicate where state funding should go.
+  I would need data on water flow and precipitation, metal concentration, and county median income. 
+  USGS could provide some useful data, as well as the U.S. census bureau. I also want to look at midwestern state data to see slightly more detailed measurements.
+  I want to perform a  time series analysis on the concentration over time and see how that compares to the time series of changing flow conditions of water. I also want to compare spatially county income with metal concetnration, especially at peak metal concentrations. I think it would be interesting to use ANOVA to compare the impact of income bracket to maximum metal concentration.
 
 Name: Datasets from Groundwater-Quality and Select Quality-Control Data from the National Water-Quality Assessment Project, January through December 2016, and Previously Unpublished Data from 2013 to 2015
 Source: USGS (DOI: 10.5066/P9W4RR74)
 Coverage: 648 wells across the U.S., most data during the year 2016 with some data going back as early as 2012.
-Main variables: , , , 
+Main variables: P62453_Arsenate_wf, P62452_Arsenite_wf, P01040_Copper_wf, P01090_Zinc_wf, P01065_Nickel_wf
 File format: zip containing .txt files
 
 Name: Water Data for the Nation
