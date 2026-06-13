@@ -1,6 +1,10 @@
 # Earth-211-Final-Project
 An Earth Science data analysis project
 
+#Final Project Submission
+An analysis of how metal concentration varies with energy use type both in the form of a time series and by state. Final report is in the "Final Report" section. All parts of the final report are summarized or include more detail in the individual sections. Result summaries are in the results section, final figures and tables are in figures and tables, and references are in references. The source data can be found in the raw data folder and the code folder contains r code made in an rmd file. The raw data is sourced using a computer path, so that may need to be uptaded if downloaded to check the code.
+
+
 
 # Midpoint Check In
 Part 3. Develop at least 2 possible research questions
