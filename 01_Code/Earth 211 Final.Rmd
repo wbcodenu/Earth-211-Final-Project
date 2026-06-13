@@ -1,0 +1,357 @@
+---
+title: "Earth 211 Final"
+output: html_document
+date: "2026-05-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+#import libraries
+```{r}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+#install.packages('tidyverse')
+library(tidyverse)
+# install.packages('usmap')
+library(usmap)
+```
+#loading whole datasets
+```{r}
+#load metal elements
+trace_elements <- read.delim('/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/USGS GW Quality/NWQP_GW_QW_Data_Release_v4/Table_6_trace_elements_v4.txt')
+trace_elements_QC <- read.delim('/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/USGS GW Quality/NWQP_GW_QW_Data_Release_v4/Table_14_trace_element_QC_v4.txt')
+trace_elements$Sample_date <- as.Date(trace_elements$Sample_date, '%m/%d/%Y')
+trace_elements$State <- as.factor(trace_elements$State)
+#metals <- c('V_P01106_Aluminum_wf', 'V_P01095_Antimony_wf', 'V_P01000_Arsenic_wf', 'V_P01005_Barium_wf', 'V_P01010_Beryllium_wf', 'V_P01020_Boron_wf', 'V_P01025_Cadmium_wf', 'V_P01030_Chromium_wf', 'V_P01035_Cobalt_wf', 'V_P01040_Copper_wf', 'V_P01049_Lead_wf', 'V_P01130_Lithium_wf', 'V_P01056_Manganese_wf', 'V_P01060_Molybdenum_wf', 'V_P01065_Nickel_wf', 'V_P01145_Selenium_wf', 'V_P01075_Silver_wf', 'V_P01080_Strontium_wf', 'V_P01057_Thallium_wf', 'V_P01085_Vanadium_wf', 'V_P01090_Zinc_wf','V_P22703_Uranium_wf')
+#make a list of metal columns
+metal.cols <- c()
+for(i in colnames(trace_elements)){
+  if(startsWith(i, 'V')){
+    metal.cols <- append(metal.cols, i)
+    #trace_elements[i] <- sapply(trace_elements[i],as.numeric)
+  }
+}
+#change columns to numeric
+trace_elements[metal.cols] <- sapply(trace_elements[metal.cols], as.numeric)
+
+#load energy data
+energy_type <- read.csv('/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/eia_electric_power_operational_data_2019-04_to_2023-12.csv')
+energy_type$period <- as.Date(paste0(energy_type$period, '-01'))
+fuel.type <- energy_type$fuelTypeDescription[!duplicated(energy_type$fuelTypeDescription)]
+
+```
+#Getting regional data (old method)
+```{r}
+#old code - close/ignore this (i just wanted to keep it to reference)
+Midwest_trace <- subset(trace_elements, trace_elements$State=='IL'| trace_elements$State=='WI'| trace_elements$State=='IN'| trace_elements$State=='MI'| trace_elements$State=='OH'| trace_elements$State=='MN'| trace_elements$State=='MO'| trace_elements$State=='IA'| trace_elements$State=='ND'| trace_elements$State=='SD'| trace_elements$State=='NE'| trace_elements$State=='KS')
+Northeast_trace <- subset(trace_elements, trace_elements$State=='ME'| trace_elements$State=='VT'| trace_elements$State=='NH'| trace_elements$State=='MA'| trace_elements$State=='CT'| trace_elements$State=='RI'| trace_elements$State=='NY'| trace_elements$State=='PA'| trace_elements$State=='NJ')
+South_trace <- subset(trace_elements, trace_elements$State=='WV'| trace_elements$State=='MD'| trace_elements$State=='DE'| trace_elements$State=='KY'| trace_elements$State=='VA'| trace_elements$State=='TN'| trace_elements$State=='NC'| trace_elements$State=='OK'| trace_elements$State=='AR'| trace_elements$State=='TX'| trace_elements$State=='LA'| trace_elements$State=='MS'| trace_elements$State=='AL'| trace_elements$State=='SC'| trace_elements$State=='GA'| trace_elements$State=='FL')
+West_trace <- subset(trace_elements, trace_elements$State=='WA'| trace_elements$State=='OR'| trace_elements$State=='ID'| trace_elements$State=='MT'| trace_elements$State=='WY'| trace_elements$State=='CA'| trace_elements$State=='NV'| trace_elements$State=='UT'| trace_elements$State=='CO'| trace_elements$State=='AZ'| trace_elements$State=='NM'| trace_elements$State=='AK'| trace_elements$State=='HI')
+#energy
+Midwest_NRG <- subset(energy_type, energy_type$location=='IL'| energy_type$location=='WI'| energy_type$location=='IN'| energy_type$location=='MI'| energy_type$location=='OH'| energy_type$location=='MN'| energy_type$location=='MO'| energy_type$location=='IA'| energy_type$location=='ND'| energy_type$location=='SD'| energy_type$location=='NE'| energy_type$location=='KS')
+Northeast_NRG <- subset(energy_type, energy_type$location=='ME'| energy_type$location=='VT'| energy_type$location=='NH'| energy_type$location=='MA'| energy_type$location=='CT'| energy_type$location=='RI'| energy_type$location=='NY'| energy_type$location=='PA'| energy_type$location=='NJ')
+South_NRG <- subset(energy_type, energy_type$location=='WV'| energy_type$location=='MD'| energy_type$location=='DE'| energy_type$location=='KY'| energy_type$location=='VA'| energy_type$location=='TN'| energy_type$location=='NC'| energy_type$location=='OK'| energy_type$location=='AR'| energy_type$location=='TX'| energy_type$location=='LA'| energy_type$location=='MS'| energy_type$location=='AL'| energy_type$location=='SC'| energy_type$location=='GA'| energy_type$location=='FL')
+West_NRG <- subset(energy_type, energy_type$location=='WA'| energy_type$location=='OR'| energy_type$location=='ID'| energy_type$location=='MT'| energy_type$location=='WY'| energy_type$location=='CA'| energy_type$location=='NV'| energy_type$location=='UT'| energy_type$location=='CO'| energy_type$location=='AZ'| energy_type$location=='NM'| energy_type$location=='AK'| energy_type$location=='HI')
+```
+
+#Getting regional data
+```{r}
+#regional lists
+Midwest <- c('IL', 'WI', 'IN', 'MI', 'OH', 'MN', 'MO', 'IA', 'ND', 'SD', 'NE', 'KS')
+Northeast <- c('ME', 'VT', 'NH', 'MA', 'CT', 'RI', 'NY', 'PA', 'NJ')
+South <- c('WV', 'MD', 'DE', 'KY', 'VA', 'TN', 'NC', 'OK', 'AR', 'TX', 'LA', 'MS', 'AL', 'SC', 'GA', 'FL')
+West <- c('WA', 'OR', 'ID', 'MT', 'WY', 'CA', 'NV', 'UT', 'CO', 'AZ', 'NM', 'AK', 'HI')
+US_State <- c(Midwest, Northeast, South, West)
+
+#trace metals
+Midwest_trace <- subset(trace_elements, State %in% Midwest)
+Northeast_trace <- subset(trace_elements, State %in% Northeast)
+South_trace <- subset(trace_elements, State %in% South)
+West_trace <- subset(trace_elements, State %in% West)
+
+#energy type
+Midwest_NRG <- subset(energy_type, location %in% Midwest)
+Northeast_NRG <- subset(energy_type, location %in% Northeast)
+South_NRG <- subset(energy_type, location %in% South)
+West_NRG <- subset(energy_type, location %in% West)
+```
+#Metal aggregate datasets
+```{r}
+State <- trace_elements$State[!duplicated(trace_elements$State)]
+mean_metal <- data.frame(State)
+#metal.cols[1]$trace_elements
+#print(aggregate(unlist(trace_elements['V_P01106_Aluminum_wf']) ~ State, trace_elements, mean))
+for(i in metal.cols){
+  #agg <- aggregate(trace_elements[i], list(State=trace_elements$State), mean)
+  agg <- aggregate(as.numeric(unlist(trace_elements[i])) ~ State, trace_elements, mean, na.rm=TRUE, na.action=NULL)
+  mean_metal <- merge(mean_metal, agg, by.x='State', by.y='State')
+  names(mean_metal)[length(mean_metal)] <- i
+}
+
+Date <- trace_elements$Sample_date[!duplicated(trace_elements$Sample_date)]
+mean_metal_time <- data.frame(Date)
+for(i in metal.cols){
+  agg <- aggregate(trace_elements[i], list(Date=trace_elements$Sample_date), mean, na.rm=TRUE)
+  mean_metal_time <- merge(mean_metal_time, agg, by.x='Date', by.y='Date')
+}
+```
+#Aggregating energy statistics
+```{r}
+#mean energy by state and energy type
+mean_energy <- aggregate(consumption.for.eg.btu ~ location + fuelTypeDescription, energy_type, mean)
+mean_energy <- mean_energy %>% pivot_wider(id_cols='location', names_from='fuelTypeDescription', values_from='consumption.for.eg.btu')
+names(mean_energy) <- gsub(' ', '.', colnames(mean_energy))
+mean_energy_time <- aggregate(consumption.for.eg.btu ~ period + fuelTypeDescription, energy_type, mean)
+
+State <- energy_type$location[!duplicated(energy_type$location)]
+mean_fuel_type <- data.frame(State)
+for(i in fuel.type){
+  subs <- subset(energy_type)
+}
+
+#aggregate metal and energy
+energy_metal_state <- merge(mean_energy, mean_metal, by.x='location', by.y='State')
+```
+#Aggregate time series
+```{r}
+Midwest_uranium <- aggregate(V_P22703_Uranium_wf ~ Sample_date, Midwest_trace, mean)
+Midwest_nuclear <- subset(Midwest_NRG, Midwest_NRG$fuelTypeDescription=='nuclear')
+Midwest_nuclear <- aggregate(consumption.for.eg.btu ~ period, Midwest_nuclear, mean)
+```
+#Correlation tables
+#Coal correlation
+```{r}
+#old code - close this section
+#coal_corr <- lapply(1:36, function(x) lm(energy_metal_state$all.coal.products ~ energy_metal_state$V_P01075_Silver_wf))
+#coal_model <- lm(V_P01106_Aluminum_wf + V_P01095_Antimony_wf + V_P01000_Arsenic_wf + V_P01005_Barium_wf + V_P01010_Beryllium_wf+ V_P01020_Boron_wf+ V_P01025_Cadmium_wf+ V_P01030_Chromium_wf+ V_P01035_Cobalt_wf+ V_P01040_Copper_wf+ V_P01049_Lead_wf+ V_P01130_Lithium_wf+ V_P01056_Manganese_wf+ V_P01060_Molybdenum_wf+ V_P01065_Nickel_wf+ V_P01145_Selenium_wf+ V_P01075_Silver_wf+ V_P01080_Strontium_wf+ V_P01057_Thallium_wf+ V_P01085_Vanadium_wf+ V_P01090_Zinc_wf+ V_P22703_Uranium_wf ~ all.coal.products, data=energy_metal_state)
+#coal_strontium <- lm(V_P01080_Strontium_wf ~ all.coal.products, data=energy_metal_state)
+#summary(coal_strontium)
+  
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ all.coal.products, data=energy_metal_state)
+coal_summ <- as.data.frame(coef(summary(lm_temp)))
+coal_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  #lm(trace_elements[i], list(State=trace_elements$State), mean)
+  #lm_temp <- lm(energy_metal_state[i], list(energy_metal_state$all.coal.products), na.rm=TRUE, na.action=NULL)
+  #coal_coeff <- merge(mean_metal, agg, by.x='State', by.y='State')
+  #names(coal_coeff)[length(coal_coeff)] <- i
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ all.coal.products, data=energy_metal_state)
+  coal_summ[nrow(coal_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+}
+coal_summ <- coal_summ[-c(1,2), ]
+```
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ all.coal.products, data=energy_metal_state)
+coal_summ <- as.data.frame(coef(summary(lm_temp)))
+coal_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ all.coal.products, data=energy_metal_state)
+  coal_summ[nrow(coal_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+}
+coal_summ <- coal_summ[-c(1,2), ]
+write.csv(coal_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/coal_summ.csv')
+```
+#Renewable correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ all.renewables, data=energy_metal_state)
+renewable_summ <- as.data.frame(coef(summary(lm_temp)))
+renewable_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ all.renewables, data=energy_metal_state)
+  renewable_summ[nrow(renewable_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  renewable_summ$metal[nrow(renewable_summ)] <- i
+}
+renewable_summ <- renewable_summ[-c(1,2), ]
+write.csv(renewable_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/renewable_summ.csv')
+```
+#Fossil fuels correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ fossil.fuels, data=energy_metal_state)
+fossil_summ <- as.data.frame(coef(summary(lm_temp)))
+fossil_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ fossil.fuels, data=energy_metal_state)
+  fossil_summ[nrow(fossil_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  fossil_summ$metal[nrow(fossil_summ)] <- i
+}
+fossil_summ <- fossil_summ[-c(1,2), ]
+write.csv(fossil_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/fossil_summ.csv')
+```
+#Nuclear correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ nuclear, data=energy_metal_state)
+nuclear_summ <- as.data.frame(coef(summary(lm_temp)))
+nuclear_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ nuclear, data=energy_metal_state)
+  nuclear_summ[nrow(nuclear_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  nuclear_summ$metal[nrow(nuclear_summ)] <- i
+}
+nuclear_summ <- nuclear_summ[-c(1,2), ]
+write.csv(nuclear_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/nuclear_summ.csv')
+```
+#Biomass correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ biomass, data=energy_metal_state)
+biomass_summ <- as.data.frame(coef(summary(lm_temp)))
+biomass_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ biomass, data=energy_metal_state)
+  biomass_summ[nrow(biomass_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  biomass_summ$metal[nrow(biomass_summ)] <- i
+}
+biomass_summ <- biomass_summ[-c(1,2), ]
+write.csv(biomass_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/biomass_summ.csv')
+```
+#Natural gas correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ natural.gas, data=energy_metal_state)
+gas_summ <- as.data.frame(coef(summary(lm_temp)))
+gas_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ natural.gas, data=energy_metal_state)
+  gas_summ[nrow(gas_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  gas_summ$metal[nrow(gas_summ)] <- i
+}
+gas_summ <- gas_summ[-c(1,2), ]
+write.csv(gas_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/gas_summ.csv')
+```
+#Solar correlation
+```{r}
+lm_temp <- lm(as.numeric(unlist(energy_metal_state[metal.cols[1]])) ~ solar, data=energy_metal_state)
+solar_summ <- as.data.frame(coef(summary(lm_temp)))
+solar_summ$metal <- metal.cols[1]
+for(i in metal.cols){
+  lm_temp <- lm(as.numeric(unlist(energy_metal_state[i])) ~ solar, data=energy_metal_state)
+  solar_summ[nrow(solar_summ)+1,] <- c(coef(summary(lm_temp))[2,],i)
+  solar_summ$metal[nrow(solar_summ)] <- i
+}
+solar_summ <- solar_summ[-c(1,2), ]
+write.csv(solar_summ, '/Users/willboyle/Desktop/College Years/Junior Year/Earth Data/Final Project/CORRELATION TABLES/solar_summ.csv')
+```
+
+#Strontium time series data
+```{r}
+Midwest_strontium <- aggregate(V_P01080_Strontium_wf ~ Sample_date, Midwest_trace, mean)
+Midwest_renewable <- subset(Midwest_NRG, Midwest_NRG$fuelTypeDescription=='renewable')
+Midwest_coal <- subset(Midwest_NRG, Midwest_NRG$fuelTypeDescription=='all coal products')
+Midwest_renewable <- aggregate(consumption.for.eg.btu ~ period, Midwest_renewable, mean)
+Midwest_coal <- aggregate(consumption.for.eg.btu ~ period, Midwest_coal, mean)
+ggplot(Midwest_strontium, aes(Sample_date, V_P01080_Strontium_wf)) + geom_line()
+ggplot(Midwest_renewable, aes(period, consumption.for.eg.btu)) + geom_line()+ylab('Renewable btu')
+ggplot(Midwest_coal, aes(period, consumption.for.eg.btu)) + geom_line()+ylab('Coal btu')
+
+Midwest_renewable_ts <- ts(Midwest_renewable$consumption.for.eg.btu, start=c(Midwest_renewable$period[1]), frequency=6)
+dec_add <- decompose(Midwest_renewable_ts, type='additive')
+plot(dec_add)
+Midwest_coal_ts <- ts(Midwest_coal$consumption.for.eg.btu, start=c(Midwest_coal$period[1]), frequency=6)
+dec_add <- decompose(Midwest_coal_ts, type='additive')
+plot(dec_add)
+```
+#chromium (solar) and cadmium (nuclear)
+```{r}
+Midwest_chromium <- aggregate(V_P01030_Chromium_wf ~ Sample_date, Midwest_trace, mean)
+Midwest_solar <- subset(Midwest_NRG, Midwest_NRG$fuelTypeDescription=='solar')
+Midwest_solar <- aggregate(consumption.for.eg.btu ~ period, Midwest_solar, mean)
+
+ggplot(Midwest_chromium, aes(Sample_date, V_P01030_Chromium_wf)) + geom_line()
+ggplot(Midwest_solar, aes(period, consumption.for.eg.btu)) + geom_line()+ylab('Solar btu')
+
+Midwest_solar_ts <- ts(Midwest_solar$consumption.for.eg.btu, start=c(Midwest_solar$period[1]), frequency=6)
+dec_add <- decompose(Midwest_solar_ts, type='additive')
+plot(dec_add)
+
+
+Midwest_cadmium <- aggregate(V_P01025_Cadmium_wf ~ Sample_date, Midwest_trace, mean)
+Midwest_nuclear <- subset(Midwest_NRG, Midwest_NRG$fuelTypeDescription=='nuclear')
+Midwest_nuclear <- aggregate(consumption.for.eg.btu ~ period, Midwest_nuclear, mean)
+
+ggplot(Midwest_cadmium, aes(Sample_date, V_P01025_Cadmium_wf)) + geom_line()
+ggplot(Midwest_nuclear, aes(period, consumption.for.eg.btu)) + geom_line()+ylab('Nuclear btu')
+
+Midwest_nuclear_ts <- ts(Midwest_nuclear$consumption.for.eg.btu, start=c(Midwest_nuclear$period[1]), frequency=6)
+dec_add <- decompose(Midwest_nuclear_ts, type='additive')
+plot(dec_add)
+```
+#Anova test on midwest fuel types and midwest trace metals
+```{r}
+strontium_res <- aov(V_P01080_Strontium_wf ~ State*Sample_date, data=trace_elements)
+
+summary(strontium_res)
+#TukeyHSD(strontium_res)
+
+fuel_res <- aov(consumption.for.eg.btu ~ location * fuelTypeDescription * period, data=energy_type)
+summary(fuel_res)
+#TukeyHSD(fuel_res)
+```
+#Getting national statistics
+```{r}
+#median metal concentrations
+Nat_med_strontium <- median(na.omit(as.numeric(trace_elements$V_P01080_Strontium_wf)))
+Nat_med_cadmium <- median(na.omit(as.numeric(trace_elements$V_P01025_Cadmium_wf)))
+Nat_med_chromium <- median(na.omit(as.numeric(trace_elements$V_P01030_Chromium_wf)))
+#average energy consumption
+Nat_mean_renewable <- mean(subset(energy_type, energy_type$fuelTypeDescription=='renewable')$consumption.for.eg.btu)
+Nat_mean_coal <- mean(subset(energy_type, energy_type$fuelTypeDescription=='all coal products')$consumption.for.eg.btu)
+Nat_mean_solar <- mean(subset(energy_type, energy_type$fuelTypeDescription=='solar')$consumption.for.eg.btu)
+Nat_mean_nuclear <- mean(subset(energy_type, energy_type$fuelTypeDescription=='nuclear')$consumption.for.eg.btu)
+```
+
+#make a US map
+```{r}
+renewable <- subset(energy_type, energy_type$fuelTypeDescription=='renewable')
+renewable$state <- renewable$location
+plot_usmap(data= renewable, values='consumption.for.eg.btu', color='black') + scale_fill_continuous(low= 'white', high='green', name='Renewable Energy Amount')
+```
+```{r}
+coal_map <- subset(energy_type, energy_type$fuelTypeDescription=='all coal products')
+coal_map$state <- coal_map$location
+plot_usmap(data= coal_map, values='consumption.for.eg.btu', color='black') + scale_fill_continuous(low= 'white', high='orange', name='Coal Energy Amount')
+```
+```{r}
+trace_elements_state <- trace_elements
+trace_elements_state$state <- trace_elements$State
+plot_usmap(data= trace_elements_state, values='V_P01080_Strontium_wf', color='black') + scale_fill_continuous(low= 'white', high='red', name='Strontium Amount')
+```
+
+```{r}
+solar_map <- subset(energy_type, energy_type$fuelTypeDescription=='solar')
+solar_map$state <- solar_map$location
+plot_usmap(data= solar_map, values='consumption.for.eg.btu', color='black') + scale_fill_continuous(low= 'white', high='yellow', name='Solar Energy Amount')
+```
+```{r}
+plot_usmap(data= trace_elements_state, values='V_P01030_Chromium_wf', color='black') + scale_fill_continuous(low= 'white', high='blue', name='Chromium Amount')
+```
+
+```{r}
+nuclear_map <- subset(energy_type, energy_type$fuelTypeDescription=='nuclear')
+nuclear_map$state <- nuclear_map$location
+plot_usmap(data= nuclear_map, values='consumption.for.eg.btu', color='black') + scale_fill_continuous(low= 'white', high='purple', name='Nuclear Energy Amount')
+```
+```{r}
+plot_usmap(data= trace_elements_state, values='V_P01025_Cadmium_wf', color='black') + scale_fill_continuous(low= 'white', high='maroon', name='Cadmium Amount')
+```
