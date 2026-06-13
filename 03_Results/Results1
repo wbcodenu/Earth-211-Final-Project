@@ -1,1 +1,44 @@
+Results
+Energy use correlated with metal concentration via a regression model
+Based on the correlation between energy use type and trace metal concentrations across state averages over the timeframe, different energy source types correlate with changes in different metals. This analysis was performed using a linear regression model in R and analyzing the p-value for the slope of the line to see if the values are correlated.
+
+Renewable energy and fossil fuels overall are both significantly correlated with an increase in strontium, indicating that higher energy consumption as a whole is correlated with strontium. 
+
+Higher renewable energy as a whole is correlated with an increase in strontium concentrations. Renewable energy has a 5 times increased slope, indicating that increased renewable energy corresponds with a much greater change in strontium than increased fossil fuel usage
+
+Changes in the amount of coal used only significantly correlates with an increase in strontium. Coal usage has a roughly four times greater increase in strontium than all fossil fuels. Natural gas is not correlated with any changes in trace metal concentration.
+
+Use of biomass is not correlated with any significant change in trace metal concentrations in the water. Solar energy is significantly correlated with chromium, however the slope determined by the linear regression was very low, indicating that there is not a significant increase in chromium in the water at higher solar energy usage. 
+
+Increased nuclear energy usage is not significantly correlated with a change in uranium. However, it is significantly correlated with an increase in cadmium in the water. However, the slope of the line predicted by the linear regression model is low, so there is not a huge increase in cadmium with nuclear energy.
+Specific time series analysis
+
+
+
+Based on the time series analyses of strontium and renewable energy and coal energy, there does not appear to be any correlation in time. Even when decomposed, the trend for both renewables and coal do not follow a similar pattern to the time series of strontium. There seem to be slight dips in renewable energy right around rises in strontium, and slight rises coal uses around increases in strontium.
+
+
+
+
+While solar and cadmium were correlated, there does not seem to be any consistent change in cadmium concentration with changes in solar energy usage. The solar energy usage fluctuates regularly from seasonality, increasing in summer and decreasing in winter. However, cadmium concentration does not change consistently on the seasons.
+
+Nuclear energy usage does not have appear to have any time (long term or seasonal) series that matches with chromium. There is no apparent variation that matches by increases by time.
+ANOVA
+
+
+With this ANOVA test, I checked to make sure that the average strontium significantly varied for at least one state compared to average. Because p < 0.05, I fail to reject that all states have the same average across different days, so I know that there is some significant variation. However, there is no significant difference in strontium over dates, implying that the time series analysis was not significantly significant.
+
+This ANOVA test was meant to confirm that energy consumption actually varied with state and with energy type. Due to the low p values for both location and fuelTypeDescription, the average consumption for energy (in BTUs) actually changes with both location and fuel type. Additionally, because there is a low p value when comparing location and fuel type to each other, there is a significant interaction between the two. There is at least one significant variation in mean energy across different times as well, as the p value for period is very low. The time and period are also correlated, as they have a low p value so there is a low probability of this result if they do not interact.
+
+
+Maps (Geospatial Data)
+
+
+
+There is no clear visible trend between coal energy or renewable energy across states as well as strontium. The state with the highest strontium appears to be West Virginia, which also has a fairly high amount of energy from coal. However, no other states appear to have the same clear trend. Most states with moderately high strontium do not have a comparably high amount of coal or renewable energy.
+
+This chromium data seems to be fairly limited by chromium gathering. High amounts of chromium are in California, where there is also a very high solar energy. Washington and Texas both follow a similar relationship between chromium and solar energy, but Utah and Tennessee do not appear to follow this. All other states do not appear have to have chromium measured, so that limits the dataset significantly.
+
+
+Similar to the solar-chromium combination, the nuclear-cadmium concentration is fairly limited by the amount of sites that have measured cadmium. Additionally, there are not as many states with nuclear energy as other energy types, so that also limits the analysis. 
 
